@@ -1,0 +1,6 @@
+dawahi.db
+uploads/passports/*
+!uploads/passports/.gitkeep
+__pycache__/
+*.pyc
+.env
