@@ -3,7 +3,7 @@
 يعمل بالكامل محلياً على الهاتف عبر Termux، بدون أي اتصال إنترنت خارجي.
 
 تشغيل:
-    pip install flask werkzeug
+    pip install -r requirements.txt
     python app.py
 
 ثم افتح المتصفح على:
@@ -113,7 +113,7 @@ def gen_booking_code():
 
 
 # ---------------------------------------------------------------------------
-# صفحات HTML (نفس الملفات الأصلية بدون أي تعديل في التسمية)
+# صفحات HTML
 # ---------------------------------------------------------------------------
 @app.route("/")
 def root():
@@ -278,6 +278,26 @@ def api_booking_cancel(code):
 
 
 # ---------------------------------------------------------------------------
+# معالجات الأخطاء
+# ---------------------------------------------------------------------------
+@app.errorhandler(404)
+def not_found(e):
+    # محاولة إرجاع ملف HTML إذا كان المسار يشير إلى ملف
+    path = request.path.lstrip('/')
+    if path and not path.startswith('api/'):
+        try:
+            return send_from_directory(BASE_DIR, path)
+        except:
+            pass
+    return jsonify({"ok": False, "error": "الصفحة غير موجودة"}), 404
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"ok": False, "error": "خطأ في السيرفر"}), 500
+
+
+# ---------------------------------------------------------------------------
 if __name__ == "__main__":
     init_db()
     port = int(os.environ.get("PORT", 5000))
@@ -286,6 +306,5 @@ if __name__ == "__main__":
     print(f"افتح المتصفح على: http://127.0.0.1:{port}")
     app.run(host="0.0.0.0", port=port, debug=debug)
 else:
-    # عند التشغيل عبر gunicorn (على استضافة مثل Render/Railway) لازم تتعمل
-    # قاعدة البيانات هنا لأن الكود جوه if __name__ == "__main__" مش هيتنفذ
+    # عند التشغيل عبر gunicorn (على استضافة مثل Render/Railway)
     init_db()

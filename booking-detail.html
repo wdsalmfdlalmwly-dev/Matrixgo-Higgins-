@@ -25,72 +25,108 @@
 </div>
 
 <div class="wrap">
-  <h1>تفاصيل الحجز — <span id="bkCode">...</span> <span class="badge ok" id="bkStatus"></span></h1>
-
-  <div class="card" id="bkCard">
+  <h1>تفاصيل الحجز</h1>
+  
+  <div class="card" id="detailCard" style="max-width:600px; margin:40px auto;">
     <p>جارٍ التحميل...</p>
+  </div>
+  
+  <div class="center" style="margin-top:20px">
+    <a href="my-bookings.html" class="btn">العودة إلى الحجوزات</a>
   </div>
 </div>
 
 <div class="footer-note">وكالة الدواحي للسفر والسياحة — رحلتك تبدأ من هنا</div>
 
 <script src="theme.js"></script>
-
 <script>
 fetch('/api/session').then(r => r.json()).then(d => {
   if (!d.logged_in) { window.location.href = 'login.html'; return; }
   const el = document.getElementById('navUsername');
   if (el) el.textContent = d.username;
 });
+
 function doLogout() {
   fetch('/api/logout', { method: 'POST' }).then(() => { window.location.href = 'login.html'; });
 }
 
-const params = new URLSearchParams(window.location.search);
-const bookingCode = params.get('code');
-const card = document.getElementById('bkCard');
+const urlParams = new URLSearchParams(window.location.search);
+const code = urlParams.get('code');
 
-if (!bookingCode) {
-  card.innerHTML = '<p>لا يوجد رقم حجز محدد. <a href="my-bookings.html">اذهب إلى حجوزاتي</a></p>';
+if (!code) {
+  document.getElementById('detailCard').innerHTML = '<p>لم يتم تحديد رمز الحجز</p>';
 } else {
-  loadBooking();
-}
-
-function loadBooking() {
-  fetch('/api/booking/' + encodeURIComponent(bookingCode))
+  fetch('/api/booking/' + encodeURIComponent(code))
     .then(r => r.json())
     .then(data => {
+      const card = document.getElementById('detailCard');
       if (!data.ok) {
-        card.innerHTML = '<p>' + (data.error || 'الحجز غير موجود') + '</p>';
+        card.innerHTML = '<p style="color:var(--danger)">' + (data.error || 'لم يتم العثور على الحجز') + '</p>';
         return;
       }
       const b = data.booking;
-      document.getElementById('bkCode').textContent = b.code;
-      const statusBadge = document.getElementById('bkStatus');
-      statusBadge.textContent = b.status;
-      statusBadge.className = 'badge ' + (b.status === 'ملغاة' ? 'cancel' : 'ok');
-
+      const statusClass = b.status === 'ملغاة' ? 'cancel' : 'ok';
+      
       card.innerHTML = `
-        <h3>${b.kind === 'flight' ? 'تفاصيل الرحلة' : 'حجز الفندق'}</h3>
-        <p>${b.title}<br>${b.details || ''}<br>
-        السعر: <span class="price">${b.price.toLocaleString('en-US')} ج.س</span></p>
-        <a class="btn" href="#" onclick="alert('في النسخة الحقيقية سيتم تحميل ملف PDF للتذكرة'); return false;">تحميل التذكرة PDF</a>
-        <a class="btn secondary" href="my-bookings.html">حجوزاتي</a>
-        ${b.status !== 'ملغاة' ? '<button class="btn danger" onclick="cancelBooking()">إلغاء الحجز</button>' : ''}
+        <div style="border-bottom:1px solid var(--border); padding-bottom:16px; margin-bottom:16px;">
+          <h3>${b.title}</h3>
+          <div class="subtitle">${b.kind === 'hotel' ? '🏨 فندق' : '✈️ رحلة جوية'}</div>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--muted); font-size:0.85rem;">رمز الحجز</div>
+          <div style="font-weight:bold; font-size:1.1rem; color:var(--gold-soft)">${b.code}</div>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--muted); font-size:0.85rem;">السعر</div>
+          <div style="font-weight:bold; font-size:1.1rem; color:var(--ok)">${b.price.toLocaleString('en-US')} ج.س</div>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--muted); font-size:0.85rem;">الحالة</div>
+          <div><span class="badge ${statusClass}">${b.status}</span></div>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--muted); font-size:0.85rem;">التفاصيل</div>
+          <div style="font-size:0.95rem;">${b.details || '-'}</div>
+        </div>
+        
+        <div style="margin-bottom:12px;">
+          <div style="color:var(--muted); font-size:0.85rem;">تاريخ الحجز</div>
+          <div style="font-size:0.95rem;">${new Date(b.created_at).toLocaleString('ar-SA')}</div>
+        </div>
+        
+        ${b.status !== 'ملغاة' ? `
+          <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
+            <button class="btn danger" style="width:100%" onclick="cancelBooking('${b.code}')">إلغاء الحجز</button>
+          </div>
+        ` : ''}
       `;
     })
-    .catch(() => { card.innerHTML = '<p>تعذر الاتصال بالسيرفر</p>'; });
+    .catch(err => {
+      document.getElementById('detailCard').innerHTML = '<p style="color:var(--danger)">تعذر الاتصال بالسيرفر</p>';
+    });
 }
 
-function cancelBooking() {
-  if (!confirm('هل أنت متأكد من الإلغاء؟')) return;
-  fetch('/api/booking/' + encodeURIComponent(bookingCode) + '/cancel', { method: 'POST' })
+function cancelBooking(code) {
+  if (!confirm('هل أنت متأكد من إلغاء الحجز؟')) return;
+  fetch('/api/booking/' + encodeURIComponent(code) + '/cancel', { method: 'POST' })
     .then(r => r.json())
     .then(data => {
-      if (!data.ok) { alert(data.error || 'تعذر الإلغاء'); return; }
-      loadBooking();
+      if (!data.ok) {
+        alert(data.error || 'تعذر الإلغاء');
+        return;
+      }
+      alert('تم إلغاء الحجز بنجاح');
+      window.location.href = 'my-bookings.html';
+    })
+    .catch(() => {
+      alert('تعذر الاتصال بالسيرفر');
     });
 }
 </script>
+
 </body>
 </html>

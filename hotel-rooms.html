@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>غرف الفندق - وكالة الدواحي</title>
+<title>الغرف الفندقية - وكالة الدواحي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -25,44 +25,52 @@
 </div>
 
 <div class="wrap">
-  <h1>فندق النخيل الذهبي <span class="stars">★★★★★</span></h1>
-  <p class="subtitle">الخرطوم - السودان</p>
+  <h1>غرف فندق النخيل الذهبي</h1>
+  <p class="subtitle">اختر الغرفة المناسبة لك</p>
 
-  <div class="card">
-    <h3>غرفة مفردة</h3>
-    <p class="subtitle">السعة: شخص واحد</p>
-    <p class="price">35,000 ج.س / لليلة</p>
-    <a class="btn small" href="book-room.html">حجز الغرفة</a>
-  </div>
-
-  <div class="card">
-    <h3>غرفة مزدوجة</h3>
-    <p class="subtitle">السعة: شخصان</p>
-    <p class="price">55,000 ج.س / لليلة</p>
-    <a class="btn small" href="book-room.html">حجز الغرفة</a>
-  </div>
-
-  <div class="card">
-    <h3>جناح عائلي</h3>
-    <p class="subtitle">السعة: 4 أشخاص</p>
-    <p class="price">95,000 ج.س / لليلة</p>
-    <a class="btn small" href="book-room.html">حجز الغرفة</a>
+  <div class="grid">
+    <div class="hotel-card" style="cursor:pointer;" onclick="selectRoom('غرفة مفردة', 95000)">
+      <div class="emoji-big">🛏️</div>
+      <h3>غرفة مفردة</h3>
+      <div class="stars">★★★★★</div>
+      <div class="badge" style="color:var(--ok)">95,000 ج.س / ليلة</div>
+    </div>
+    
+    <div class="hotel-card" style="cursor:pointer;" onclick="selectRoom('غرفة مزدوجة', 165000)">
+      <div class="emoji-big">🛏️🛏️</div>
+      <h3>غرفة مزدوجة</h3>
+      <div class="stars">★★★★★</div>
+      <div class="badge" style="color:var(--ok)">165,000 ج.س / ليلة</div>
+    </div>
+    
+    <div class="hotel-card" style="cursor:pointer;" onclick="selectRoom('جناح عائلي', 250000)">
+      <div class="emoji-big">🏨</div>
+      <h3>جناح عائلي</h3>
+      <div class="stars">★★★★★</div>
+      <div class="badge" style="color:var(--ok)">250,000 ج.س / ليلة</div>
+    </div>
   </div>
 </div>
 
 <div class="footer-note">وكالة الدواحي للسفر والسياحة — رحلتك تبدأ من هنا</div>
 
 <script src="theme.js"></script>
-
 <script>
 fetch('/api/session').then(r => r.json()).then(d => {
   if (!d.logged_in) { window.location.href = 'login.html'; return; }
   const el = document.getElementById('navUsername');
   if (el) el.textContent = d.username;
 });
+
 function doLogout() {
   fetch('/api/logout', { method: 'POST' }).then(() => { window.location.href = 'login.html'; });
 }
+
+function selectRoom(roomType, price) {
+  localStorage.setItem('selectedRoom', JSON.stringify({ roomType, price }));
+  window.location.href = 'book-room.html?room=' + encodeURIComponent(roomType) + '&price=' + price;
+}
 </script>
+
 </body>
 </html>

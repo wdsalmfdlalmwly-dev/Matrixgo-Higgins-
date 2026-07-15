@@ -26,31 +26,51 @@
 
 <div class="wrap">
   <h1>اختيار الدرجة</h1>
-  <div class="card">
-    <h3>الخرطوم ✈ بورتسودان — الخطوط الجوية السودانية</h3>
-    <p class="subtitle">مغادرة 08:00 - وصول 09:15 (1س 15د)</p>
-    <div class="class-grid">
-      <div class="class-opt" onclick="selectClass('الدرجة الأولى', 120000)">
-        <h3>الدرجة الأولى</h3>
-        <div class="price">120,000 ج.س</div>
-      </div>
-      <div class="class-opt" onclick="selectClass('درجة رجال الأعمال والمستثمرين', 85000)">
-        <h3>درجة رجال الأعمال والمستثمرين</h3>
-        <div class="price">85,000 ج.س</div>
-      </div>
-      <div class="class-opt" onclick="selectClass('الدرجة الثانية', 60000)">
-        <h3>الدرجة الثانية</h3>
-        <div class="price">60,000 ج.س</div>
-      </div>
-      <div class="class-opt" onclick="selectClass('الدرجة العادية', 45000)">
-        <h3>الدرجة العادية</h3>
-        <div class="price">45,000 ج.س</div>
+  <p class="subtitle">الخطوط الجوية السودانية</p>
+
+  <div class="class-grid">
+    <div class="class-opt" onclick="bookClass('الدرجة الأولى', 320000)">
+      <div class="emoji-big">👑</div>
+      <h3>الدرجة الأولى</h3>
+      <div style="color:var(--muted); font-size:0.85rem; margin:8px 0">راحة قصوى</div>
+      <div style="color:var(--ok); font-weight:bold">320,000 ج.س</div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:8px">
+        <div>• أمتعة: 40 كجم</div>
+        <div>• حقيبة يد: قطعتان</div>
       </div>
     </div>
-    <div id="confirmBox" style="display:none; margin-top:20px">
-      <p class="subtitle">الدرجة المختارة: <b id="chosenClass" style="color:var(--gold-soft)"></b> — <span class="price" id="chosenPrice"></span></p>
-      <button class="btn" onclick="confirmBooking()" id="confirmBtn">تأكيد الحجز وإصدار التذكرة</button>
-      <div class="flash error" id="bookFlash" style="display:none; margin-top:10px"></div>
+
+    <div class="class-opt" onclick="bookClass('درجة رجال الأعمال', 240000)">
+      <div class="emoji-big">💼</div>
+      <h3>رجال الأعمال</h3>
+      <div style="color:var(--muted); font-size:0.85rem; margin:8px 0">مريحة ومرنة</div>
+      <div style="color:var(--ok); font-weight:bold">240,000 ج.س</div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:8px">
+        <div>• أمتعة: 30 كجم</div>
+        <div>• حقيبة يد: قطعتان</div>
+      </div>
+    </div>
+
+    <div class="class-opt" onclick="bookClass('الدرجة الثانية', 160000)">
+      <div class="emoji-big">✈️</div>
+      <h3>الدرجة الثانية</h3>
+      <div style="color:var(--muted); font-size:0.85rem; margin:8px 0">اقتصادية مريحة</div>
+      <div style="color:var(--ok); font-weight:bold">160,000 ج.س</div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:8px">
+        <div>• أمتعة: 25 كجم</div>
+        <div>• حقيبة يد: قطعة واحدة</div>
+      </div>
+    </div>
+
+    <div class="class-opt" onclick="bookClass('الدرجة الاقتصادية', 100000)">
+      <div class="emoji-big">🎫</div>
+      <h3>الدرجة الاقتصادية</h3>
+      <div style="color:var(--muted); font-size:0.85rem; margin:8px 0">اقتصادية</div>
+      <div style="color:var(--ok); font-weight:bold">100,000 ج.س</div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:8px">
+        <div>• أمتعة: 20 كجم</div>
+        <div>• حقيبة يد: قطعة واحدة</div>
+      </div>
     </div>
   </div>
 </div>
@@ -59,62 +79,42 @@
 
 <script src="theme.js"></script>
 <script>
-let chosenName = '';
-let chosenPrice = 0;
-
-function selectClass(name, price) {
-  chosenName = name;
-  chosenPrice = price;
-  document.getElementById('chosenClass').textContent = name;
-  document.getElementById('chosenPrice').textContent = price.toLocaleString('en-US') + ' ج.س';
-  document.getElementById('confirmBox').style.display = 'block';
-}
-
-function confirmBooking() {
-  const btn = document.getElementById('confirmBtn');
-  const flash = document.getElementById('bookFlash');
-  btn.disabled = true;
-  btn.textContent = 'جارٍ الحجز...';
-
-  fetch('/api/book', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      kind: 'flight',
-      title: 'الخرطوم ✈ بورتسودان — ' + chosenName,
-      details: 'الخطوط الجوية السودانية — مغادرة 08:00 - وصول 09:15',
-      price: chosenPrice
-    })
-  })
-    .then(r => r.json())
-    .then(data => {
-      if (!data.ok) {
-        flash.textContent = data.error || 'تعذر إتمام الحجز';
-        flash.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'تأكيد الحجز وإصدار التذكرة';
-        return;
-      }
-      window.location.href = 'booking-detail.html?code=' + encodeURIComponent(data.code);
-    })
-    .catch(() => {
-      flash.textContent = 'تعذر الاتصال بالسيرفر';
-      flash.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'تأكيد الحجز وإصدار التذكرة';
-    });
-}
-</script>
-
-<script>
 fetch('/api/session').then(r => r.json()).then(d => {
   if (!d.logged_in) { window.location.href = 'login.html'; return; }
   const el = document.getElementById('navUsername');
   if (el) el.textContent = d.username;
 });
+
 function doLogout() {
   fetch('/api/logout', { method: 'POST' }).then(() => { window.location.href = 'login.html'; });
 }
+
+function bookClass(className, price) {
+  localStorage.setItem('selectedClass', JSON.stringify({ className, price }));
+  
+  fetch('/api/book', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      kind: 'flight',
+      title: 'الخطوط الجوية السودانية — ' + className,
+      details: 'من الخرطوم (رحلة محلية)',
+      price: price
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.ok) {
+      alert(data.error || 'تعذر إنشاء الحجز');
+      return;
+    }
+    window.location.href = 'booking-detail.html?code=' + encodeURIComponent(data.code);
+  })
+  .catch(() => {
+    alert('تعذر الاتصال بالسيرفر');
+  });
+}
 </script>
+
 </body>
 </html>
